@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Pasar Saldo – Belanja dengan Saldo Anda</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+  
+  <style>
+    :root {
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      --bg: #eef1f4;
+      --card: #ffffff;
+      --ink: #14213d;
+      --mute: #5d6b82;
+      --line: #d5dce6;
+      --acc: #f2a900;
+      --acc-ink: #14213d;
+      --ok: #1f7a5a;
+      --bad: #c0392b;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0e1626;
+        --card: #17233a;
+        --ink: #eef1f4;
+        --mute: #9fb0c9;
+        --line: #2a3a57;
+        --acc-ink: #14213d;
+        --ok: #4fcf9f;
+        --bad: #ff7a6b;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0e1626;
+      --card: #17233a;
+      --ink: #eef1f4;
+      --mute: #9fb0c9;
+      --line: #2a3a57;
+      --acc-ink: #14213d;
+      --ok: #4fcf9f;
+      --bad: #ff7a6b;
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 16px/1.5 "Bricolage Grotesque", system-ui, sans-serif;
+    }
+
+    button, input, select {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--acc);
+      outline-offset: 2px;
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 12px 0;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: -.02em;
+      margin-right: auto;
+    }
+
+    .bal {
+      background: var(--ink);
+      color: var(--bg);
+      border-radius: 999px;
+      padding: 6px 8px 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 16px;
+      background: var(--acc);
+      color: var(--acc-ink);
+      font-weight: 600;
+    }
+
+    .btn.ghost {
+      background: transparent;
+      border: 1.5px solid var(--line);
+      color: var(--ink);
+    }
+
+    .btn.sm {
+      padding: 5px 12px;
+      border-radius: 999px;
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 8px 0 18px;
+    }
+
+    input, select {
+      background: var(--card);
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 12px;
+      width: 100%;
+    }
+
+    .bar input {
+      flex: 1 1 200px;
+      width: auto;
+    }
+
+    .bar select {
+      width: auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .thumb {
+      font-size: 3.2rem;
+      text-align: center;
+      padding: 22px 0;
+    }
+
+    .cbody {
+      padding: 12px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .cbody h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .mute {
+      color: var(--mute);
+      font-size: .88rem;
+    }
+
+    .price {
+      font-weight: 800;
+      margin-top: auto;
+      padding-top: 8px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(380px, 100%);
+      background: var(--card);
+      border-left: 1px solid var(--line);
+      transform: translateX(105%);
+      transition: transform .25s;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .drawer.open {
+      transform: none;
+    }
+
+    .items {
+      flex: 1;
+      overflow: auto;
+      margin: 12px 0;
+    }
+
+    .item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .item .e {
+      font-size: 1.8rem;
+    }
+
+    .item .n {
+      flex: 1;
+    }
+
+    .qty {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .qty button {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line);
+      background: none;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 15, 30, .55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      padding: 16px;
+    }
+
+    .overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 22px;
+      width: min(420px, 100%);
+      max-height: 90%;
+      overflow: auto;
+    }
+
+    .modal h2 {
+      margin: 0 0 12px;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+
+    .chip {
+      border: 1.5px solid var(--line);
+      background: none;
+      border-radius: 999px;
+      padding: 6px 14px;
+    }
+
+    .chip.on {
+      background: var(--ink);
+      color: var(--bg);
+      border-color: var(--ink);
+    }
+
+    .auth {
+      max-width: 380px;
+      margin: 8vh auto;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 26px;
+    }
+
+    .auth h1 {
+      margin: 0 0 4px;
+      font-size: 1.8rem;
+      letter-spacing: -.02em;
+    }
+
+    .auth label {
+      display: block;
+      margin: 12px 0 4px;
+      font-weight: 600;
+      font-size: .9rem;
+    }
+
+    .err {
+      color: var(--bad);
+      min-height: 1.4em;
+      margin: 10px 0 0;
+      font-size: .92rem;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      transform: translate(-50%, 30px);
+      background: var(--ink);
+      color: var(--bg);
+      padding: 10px 18px;
+      border-radius: 10px;
+      opacity: 0;
+      transition: .25s;
+      z-index: 40;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .hist {
+      border-bottom: 1px solid var(--line);
+      padding: 8px 0;
+    }
+
+    .link {
+      background: none;
+      border: 0;
+      color: var(--mute);
+      text-decoration: underline;
+      padding: 0;
+    }
+
+    .tbl {
+      overflow-x: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrap" id="app"></div>
+  <div class="drawer" id="drawer" aria-label="Keranjang Belanja"></div>
+  <div class="overlay" id="ov"></div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+ 
+    const mem = {};
+
+    function load(key, defaultValue) {
+      try {
+        const val = localStorage.getItem(key);
+        return val ? JSON.parse(val) : defaultValue;
+      } catch (e) {
+        return mem[key] !== undefined ? mem[key] : defaultValue;
+      }
+    }
+
+    function save(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (e) {
+        mem[key] = value;
+      }
+    }
+
+    const PRODUCTS = [
+      { id: 1, n: "Biji Kopi Arabika 250g", c: "Makanan", p: 65000, e: "☕", s: 12 },
+      { id: 2, n: "Earbuds Nirkabel", c: "Elektronik", p: 249000, e: "🎧", s: 6 },
+      { id: 3, n: "Tas Tote Kanvas", c: "Pakaian", p: 85000, e: "👜", s: 15 },
+      { id: 4, n: "Keyboard Mekanikal", c: "Elektronik", p: 520000, e: "⌨️", s: 4 },
+      { id: 5, n: "Buku Catatan Batik", c: "Alat Tulis", p: 32000, e: "📓", s: 30 },
+      { id: 6, n: "Sepatu Lari", c: "Pakaian", p: 450000, e: "👟", s: 7 },
+      { id: 7, n: "Paket Sambal (3 Botol)", c: "Makanan", p: 48000, e: "🌶️", s: 20 },
+      { id: 8, n: "Lampu Meja Belajar", c: "Rumah Tangga", p: 135000, e: "💡", s: 9 }
+    ];
+
+    const users = load("ps_users", {});
+    const stock = load("ps_stock", {});
+
+    PRODUCTS.forEach(p => {
+      if (stock[p.id] === undefined) stock[p.id] = p.s;
+    });
+
+    let me = load("ps_session", null);
+    let cart = {};
+    let filter = { q: "", cat: "Semua" };
+    let authMode = "login";
+    let topAmt = 100000;
+
+    const $ = id => document.getElementById(id);
+    const rp = num => "Rp" + Math.round(num).toLocaleString("id-ID");
+
+    function esc(str) {
+      return String(str).replace(/[&<>"']/g, c => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[c]));
+    }
+
+    function hash(str) {
+      return btoa(unescape(encodeURIComponent("ps::" + str)));
+    }
+
+    function toast(text) {
+      const el = $("toast");
+      el.textContent = text;
+      el.classList.add("show");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function persist() {
+      save("ps_users", users);
+      save("ps_stock", stock);
+    }
+
+    function user() {
+      return me ? users[me] : null;
+    }
+
+    function cartTotal() {
+      return PRODUCTS.reduce((tot, p) => tot + (cart[p.id] || 0) * p.p, 0);
+    }
+
+    function cartCount() {
+      return Object.keys(cart).reduce((tot, k) => tot + cart[k], 0);
+    }
+
+    function render() {
+      const u = user();
+      if (!u) {
+        me = null;
+        renderAuth();
+        return;
+      }
+
+      const categories = ["Semua"].concat(
+        PRODUCTS.map(p => p.c).filter((v, i, a) => a.indexOf(v) === i)
+      );
+
+      const list = PRODUCTS.filter(p => {
+        const matchCat = filter.cat === "Semua" || p.c === filter.cat;
+        const matchQuery = p.n.toLowerCase().includes(filter.q.toLowerCase());
+        return matchCat && matchQuery;
+      });
+
+      $("app").innerHTML = `
+        <header>
+          <div class="logo">Pasar Saldo</div>
+          <div class="bal">
+            <span>${esc(u.name)} · <b id="balv">${rp(u.balance)}</b></span>
+            <button class="btn sm" data-a="topup">Isi Saldo</button>
+          </div>
+          <button class="btn ghost" data-a="cart">Keranjang (${cartCount()})</button>
+          <button class="btn ghost" data-a="hist">Riwayat</button>
+          <button class="link" data-a="logout">Keluar</button>
+        </header>
+
+        <div class="bar">
+          <input id="q" type="search" placeholder="Cari produk..." aria-label="Cari produk" value="${esc(filter.q)}">
+          <select id="cat" aria-label="Kategori">
+            ${categories.map(c => `<option${c === filter.cat ? ' selected' : ''}>${c}</option>`).join("")}
+          </select>
+        </div>
+
+        ${list.length ? `
+          <div class="grid">
+            ${list.map(p => {
+              const left = stock[p.id];
+              return `
+                <div class="card">
+                  <div class="thumb" aria-hidden="true">${p.e}</div>
+                  <div class="cbody">
+                    <h3>${p.n}</h3>
+                    <span class="mute">${p.c} · ${left > 0 ? 'Sisa ' + left : 'Stok Habis'}</span>
+                    <div class="row price">
+                      <span>${rp(p.p)}</span>
+                      <button class="btn sm" data-a="add" data-id="${p.id}" ${left < 1 ? 'disabled' : ''}>
+                        + Keranjang
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        ` : '<p class="mute">Produk tidak ditemukan. Coba kata kunci atau kategori lain.</p>'}
+      `;
+
+      const q = $("q");
+      q.oninput = function() {
+        filter.q = q.value;
+        const pos = q.selectionStart;
+        render();
+        const nextQ = $("q");
+        nextQ.focus();
+        nextQ.setSelectionRange(pos, pos);
+      };
+
+      $("cat").onchange = function(e) {
+        filter.cat = e.target.value;
+        render();
+      };
+
+      renderCart();
+    }
+
+    function renderAuth() {
+      const isReg = authMode === "register";
+      $("app").innerHTML = `
+        <div class="auth">
+          <h1>Pasar Saldo</h1>
+          <p class="mute">${isReg ? 'Buat akun untuk mulai berbelanja.' : 'Masuk untuk belanja dengan saldo Anda.'}</p>
+          <div id="af">
+            ${isReg ? '<label for="nm">Nama Lengkap</label><input id="nm" autocomplete="name" placeholder="Nama Anda">' : ''}
+            <label for="em">Email</label>
+            <input id="em" type="email" autocomplete="email" placeholder="nama@email.com">
+            <label for="pw">Kata Sandi</label>
+            <input id="pw" type="password" autocomplete="${isReg ? 'new-password' : 'current-password'}" placeholder="Minimal 6 karakter">
+            <p class="err" id="err" role="alert"></p>
+            <button class="btn" style="width:100%" data-a="auth">${isReg ? 'Buat Akun' : 'Masuk'}</button>
+          </div>
+          <p class="mute" style="text-align:center">
+            ${isReg ? 'Sudah punya akun? ' : 'Belum punya akun? '}
+            <button class="link" data-a="swap">${isReg ? 'Masuk' : 'Buat Akun'}</button>
+          </p>
+        </div>
+      `;
+
+      $("pw").onkeydown = function(e) {
+        if (e.key === "Enter") doAuth();
+      };
+    }
+
+    function renderCart() {
+      const ids = Object.keys(cart);
+      const u = user();
+      const total = cartTotal();
+
+      $("drawer").innerHTML = `
+        <div class="row">
+          <h2 style="margin:0">Keranjang Anda</h2>
+          <button class="btn ghost sm" data-a="close">Tutup</button>
+        </div>
+        <div class="items">
+          ${ids.length ? ids.map(id => {
+            const p = PRODUCTS.find(x => x.id == id);
+            return `
+              <div class="item">
+                <span class="e">${p.e}</span>
+                <div class="n">${p.n}<div class="mute">${rp(p.p)}</div></div>
+                <div class="qty">
+                  <button data-a="dec" data-id="${id}" aria-label="Kurangi">−</button>
+                  <span>${cart[id]}</span>
+                  <button data-a="inc" data-id="${id}" aria-label="Tambah">+</button>
+                </div>
+              </div>
+            `;
+          }).join("") : '<p class="mute">Keranjang masih kosong. Pilih produk terlebih dahulu.</p>'}
+        </div>
+        <div class="row">
+          <span>Total Belanja</span>
+          <b>${rp(total)}</b>
+        </div>
+        <div class="row mute">
+          <span>Sisa saldo setelah bayar</span>
+          <span style="color:${u && (u.balance - total < 0) ? 'var(--bad)' : 'var(--ok)'}">
+            ${u ? rp(u.balance - total) : ''}
+          </span>
+        </div>
+        ${u && u.balance < total ? `<p class="err">Saldo tidak cukup. Isi ulang ${rp(total - u.balance)} lagi untuk membayar.</p>` : ''}
+        <button class="btn" style="width:100%;margin-top:10px" data-a="pay" ${ids.length ? '' : 'disabled'}>
+          ${u && u.balance < total ? 'Isi Saldo untuk Bayar' : 'Bayar dengan Saldo'}
+        </button>
+      `;
+    }
+
+    function modal(html) {
+      $("ov").innerHTML = `<div class="modal" role="dialog" aria-modal="true">${html}</div>`;
+      $("ov").classList.add("open");
+    }
+
+    function closeModal() {
+      $("ov").classList.remove("open");
+    }
+
+    function openTopup() {
+      modal(`
+        <h2>Isi Saldo</h2>
+        <p class="mute">Hanya simulasi: tidak ada transaksi uang asli.</p>
+        <div class="chips">
+          ${[50000, 100000, 250000, 500000].map(a => `
+            <button class="chip${a === topAmt ? ' on' : ''}" data-a="chip" data-v="${a}">${rp(a)}</button>
+          `).join("")}
+        </div>
+        <label for="ta" class="mute">Atau masukkan nominal khusus</label>
+        <input id="ta" type="number" min="10000" step="1000" value="${topAmt}">
+        <p class="err" id="terr"></p>
+        <div class="row" style="margin-top:8px">
+          <button class="btn ghost" data-a="mclose">Batal</button>
+          <button class="btn" data-a="dotop">Tambah Saldo</button>
+        </div>
+      `);
+
+      $("ta").oninput = function() {
+        topAmt = +this.value;
+        document.querySelectorAll(".chip").forEach(c => {
+          c.classList.toggle("on", +c.dataset.v === topAmt);
+        });
+      };
+    }
+
+    function openHist() {
+      const orders = user().orders || [];
+      modal(`
+        <h2>Riwayat Transaksi</h2>
+        ${orders.length ? `
+          <div class="tbl">
+            ${orders.slice().reverse().map(x => `
+              <div class="hist">
+                <div class="row">
+                  <b>${esc(x.id)}</b>
+                  <span>${x.type === "topup" ? '+' : '−'}${rp(x.total)}</span>
+                </div>
+                <div class="mute">${new Date(x.t).toLocaleString("id-ID")} · ${esc(x.desc)}</div>
+              </div>
+            `).join("")}
+          </div>
+        ` : '<p class="mute">Belum ada aktivitas. Lakukan pengisian saldo atau pembelian.</p>'}
+        <button class="btn ghost" style="margin-top:14px" data-a="mclose">Tutup</button>
+      `);
+    }
+
+    function doAuth() {
+      const em = ($("em").value || "").trim().toLowerCase();
+      const pw = $("pw").value;
+      const err = $("err");
+
+      if (!/^\S+@\S+\.\S+$/.test(em)) {
+        err.textContent = "Masukkan alamat email yang valid.";
+        return;
+      }
+      if (pw.length < 6) {
+        err.textContent = "Kata sandi minimal 6 karakter.";
+        return;
+      }
+
+      if (authMode === "register") {
+        const nm = ($("nm").value || "").trim();
+        if (!nm) {
+          err.textContent = "Masukkan nama Anda.";
+          return;
+        }
+        if (users[em]) {
+          err.textContent = "Email sudah terdaftar. Silakan masuk.";
+          return;
+        }
+        users[em] = { name: nm, pass: hash(pw), balance: 0, orders: [] };
+        persist();
+      } else {
+        if (!users[em] || users[em].pass !== hash(pw)) {
+          err.textContent = "Email atau kata sandi salah.";
+          return;
+        }
+      }
+
+      me = em;
+      save("ps_session", me);
+      cart = {};
+      render();
+      toast("Selamat datang, " + users[em].name);
+    }
+
+    function pay() {
+      const u = user();
+      const total = cartTotal();
+      if (!total) return;
+
+      if (u.balance < total) {
+        $("drawer").classList.remove("open");
+        topAmt = Math.max(10000, Math.ceil((total - u.balance) / 10000) * 10000);
+        openTopup();
+        return;
+      }
+
+      for (let id in cart) {
+        if (stock[id] < cart[id]) {
+          toast("Stok tidak mencukupi untuk beberapa barang.");
+          return;
+        }
+      }
+
+      const desc = [];
+      for (let id in cart) {
+        stock[id] -= cart[id];
+        const p = PRODUCTS.find(x => x.id == id);
+        desc.push(`${cart[id]}x ${p.n}`);
+      }
+
+      u.balance -= total;
+      u.orders.push({
+        id: "ORD-" + Date.now().toString().slice(-6),
+        t: Date.now(),
+        total: total,
+        desc: desc.join(", "),
+        type: "buy"
+      });
+
+      persist();
+      cart = {};
+      $("drawer").classList.remove("open");
+      render();
+      toast(`Pembayaran ${rp(total)} berhasil. Sisa saldo: ${rp(u.balance)}`);
+    }
+
+    function topup() {
+      const amount = Math.round(+$("ta").value);
+      if (!(amount >= 10000)) {
+        $("terr").textContent = "Minimal pengisian saldo adalah " + rp(10000) + ".";
+        return;
+      }
+      if (amount > 10000000) {
+        $("terr").textContent = "Maksimal pengisian saldo adalah " + rp(10000000) + ".";
+        return;
+      }
+
+      const u = user();
+      u.balance += amount;
+      u.orders.push({
+        id: "TOP-" + Date.now().toString().slice(-6),
+        t: Date.now(),
+        total: amount,
+        desc: "Isi Saldo",
+        type: "topup"
+      });
+
+      persist();
+      closeModal();
+      render();
+      toast(`Berhasil menambahkan ${rp(amount)} ke saldo Anda`);
+    }
+
+    document.addEventListener("click", function(e) {
+      const btn = e.target.closest("[data-a]");
+      if (!btn) return;
+
+      const action = btn.dataset.a;
+      const id = btn.dataset.id;
+
+      if (action === "swap") {
+        authMode = authMode === "login" ? "register" : "login";
+        renderAuth();
+      } else if (action === "auth") {
+        doAuth();
+      } else if (action === "logout") {
+        me = null;
+        save("ps_session", null);
+        cart = {};
+        $("drawer").classList.remove("open");
+        render();
+      } else if (action === "topup") {
+        openTopup();
+      } else if (action === "chip") {
+        topAmt = +btn.dataset.v;
+        $("ta").value = topAmt;
+        document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === btn));
+      } else if (action === "dotop") {
+        topup();
+      } else if (action === "mclose") {
+        closeModal();
+      } else if (action === "hist") {
+        openHist();
+      } else if (action === "cart") {
+        renderCart();
+        $("drawer").classList.add("open");
+      } else if (action === "close") {
+        $("drawer").classList.remove("open");
+      } else if (action === "add") {
+        if ((cart[id] || 0) < stock[id]) {
+          cart[id] = (cart[id] || 0) + 1;
+          render();
+          toast("Berhasil ditambahkan ke keranjang");
+        } else {
+          toast("Stok barang ini sudah habis");
+        }
+      } else if (action === "inc") {
+        if (cart[id] < stock[id]) {
+          cart[id]++;
+        } else {
+          toast("Stok maksimum tercapai");
+        }
+        render();
+        renderCart();
+      } else if (action === "dec") {
+        cart[id]--;
+        if (cart[id] < 1) delete cart[id];
+        render();
+        renderCart();
+      } else if (action === "pay") {
+        pay();
+      }
+    });
+
+    $("ov").addEventListener("click", function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") {
+        closeModal();
+        $("drawer").classList.remove("open");
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
